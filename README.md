@@ -23,27 +23,23 @@ require 'gpt-function'
 # 你需要設定你的 api key 和 model name
 Gpt::Function.configure(api_key: '...', model: 'gpt-3.5-turbo-1106')
 
-# 創建一個簡單的 GPT 函數，你需要描述這個函數的功能，以及提供一些範例
-translater = Gpt::Function.new("請翻譯成繁體中文", [["apple", "蘋果"]])
+# 使用內建的翻譯方法
+p Gpt::Functions.翻譯成中文("banana") # "香蕉"
 
-# 然後就可以使用這個函數了
-result = translater.call("apple")
+# 使用內建的擷取關鍵字方法
+p Gpt::Functions.擷取關鍵字("臺北市政府推動綠色交通計劃，鼓勵民眾使用公共運輸和自行車")  # ["臺北市政府", "綠色交通計劃", "民眾", "公共運輸", "自行車"]
 
-# 回傳的結果型別會參考範例的型別
-puts result # "蘋果"
-
-# 一個較複雜的 GPT 函數，用於擷取關鍵字
-keywords_extractor = Gpt::Function.new("請擷取出所有關鍵字", [
+# 你也可以自己定義方法
+def 擷取關鍵字(input)
+  # 創建一個簡單的 GPT 函數，你需要描述這個函數的功能，以及提供一些範例
+  Gpt::Function.new("Extract all keywords",
+  [
     [
-      "藍白合「難產」！游盈隆認定「平手」 稱解套辦法就是「再做一次民調」",
-      ["藍白合", "難產", "游盈隆", "解套", "民調"]
+      "臺灣最新5G網路覆蓋率達95%，推動智慧城市發展，領先亞洲多國",
+      ["臺灣", "5G網路", "覆蓋率", "智慧城市", "亞洲"]
     ]
-  ]
-)
-result = keywords_extractor.call("藍白「3％各表」翻臉倒數？學者曝1關鍵指標")
-
-# 可以看到回傳的型別是陣列
-puts result # ["藍白", "3％各表", "翻臉", "關鍵指標"]
+  ]).call(input)
+end
 ```
 
 ## License
