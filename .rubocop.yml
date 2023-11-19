@@ -14,3 +14,12 @@ Layout/LineLength:
 
 Metrics/MethodLength:
   Max: 30
+
+Naming/AsciiIdentifiers:
+  Enabled: false
+
+Naming/MethodName:
+  Enabled: false
+
+Naming/FileName:
+  Enabled: false

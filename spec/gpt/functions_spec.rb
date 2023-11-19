@@ -17,8 +17,7 @@ RSpec.describe Gpt::Function do
     end
 
     it "translates English to Traditional Chinese correctly" do
-      translater = Gpt::Function.new("請翻譯成繁體中文", [%w[apple 蘋果]])
-      result = translater.call("apple")
+      result = Gpt::Functions.翻譯成中文("apple")
       expect(result).to eq("蘋果")
     end
   end
@@ -33,9 +32,7 @@ RSpec.describe Gpt::Function do
     end
 
     it "extracts keywords correctly" do
-      keywords_extractor = Gpt::Function.new("請擷取出所有關鍵字",
-                                             [["臺灣最新5G網路覆蓋率達95%，推動智慧城市發展，領先亞洲多國", %w[臺灣 5G網路 覆蓋率 智慧城市 亞洲]]])
-      result = keywords_extractor.call("臺灣最新5G網路覆蓋率達95%，推動智慧城市發展，領先亞洲多國")
+      result = Gpt::Functions.擷取關鍵字("臺灣最新5G網路覆蓋率達95%，推動智慧城市發展，領先亞洲多國")
       expect(result).to eq(%w[臺灣 5G網路 覆蓋率 智慧城市 亞洲])
     end
   end
