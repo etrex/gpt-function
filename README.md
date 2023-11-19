@@ -12,7 +12,13 @@
 
 ## Installation
 
-...
+在你的 Gemfile 中加入下面這行：
+
+```ruby
+gem 'gpt-function'
+```
+
+就可以使用 `bundle install` 安裝這個套件。
 
 ## Usage
 
