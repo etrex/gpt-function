@@ -2,8 +2,10 @@
 
 require "gpt-function"
 require "webmock/rspec"
+require 'dotenv/load'
 
-WebMock.disable_net_connect!(allow_localhost: true)
+# WebMock.disable_net_connect!(allow_localhost: true)
+WebMock.allow_net_connect!
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure

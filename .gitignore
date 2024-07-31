@@ -13,3 +13,4 @@
 .byebug_history
 
 gpt-function-*
+.env

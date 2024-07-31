@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    gpt-function (0.1.2)
+    gpt-function (0.3.0)
 
 GEM
   remote: https://rubygems.org/
@@ -13,6 +13,7 @@ GEM
     crack (0.4.5)
       rexml
     diff-lcs (1.5.0)
+    dotenv (3.1.2)
     hashdiff (1.0.1)
     json (2.6.3)
     language_server-protocol (3.17.0.3)
@@ -64,6 +65,7 @@ PLATFORMS
 
 DEPENDENCIES
   byebug (~> 11.1)
+  dotenv
   gpt-function!
   rake (~> 13.0)
   rspec (~> 3.0)
