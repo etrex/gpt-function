@@ -63,7 +63,7 @@ class GptFunction
       response_format: {
         type: "json_object"
       },
-      seed: 0,
+      seed: 42,
       messages: [
         *@messages,
         {
@@ -85,7 +85,7 @@ class GptFunction
       }
     end
 
-    batch_instance = Batch.new(Function.api_key)
+    batch_instance = Batch.new(GptFunction.api_key)
     batch_id = batch_instance.request(file_content)
     puts "Batch created with ID: #{batch_id}"
 
@@ -106,7 +106,7 @@ class GptFunction
     uri = URI.parse("https://api.openai.com/v1/chat/completions")
     request = Net::HTTP::Post.new(uri)
     request.content_type = "application/json"
-    request["Authorization"] = "Bearer #{Function.api_key}"
+    request["Authorization"] = "Bearer #{GptFunction.api_key}"
     request.body = to_request_body(input).to_json
 
     req_options = {
