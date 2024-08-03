@@ -28,8 +28,7 @@ class GptFunction
     attr_reader :request_counts_completed
     attr_reader :request_counts_failed
 
-    attr_reader :metadata_customer_id
-    attr_reader :metadata_batch_description
+    attr_reader :metadata
 
     def initialize(hash)
       @id = hash["id"]
@@ -55,8 +54,7 @@ class GptFunction
       @request_counts_completed = hash.dig("request_counts", "completed")
       @request_counts_failed = hash.dig("request_counts", "failed")
 
-      @metadata_customer_id = hash.dig("metadata", "customer_id")
-      @metadata_batch_description = hash.dig("metadata", "batch_description")
+      @metadata = hash.dig("metadata")
     end
 
     def to_hash
@@ -82,8 +80,7 @@ class GptFunction
         request_counts_total: request_counts_total,
         request_counts_completed: request_counts_completed,
         request_counts_failed: request_counts_failed,
-        metadata_customer_id: metadata_customer_id,
-        metadata_batch_description: metadata_batch_description,
+        metadata: metadata
       }
     end
 
@@ -189,7 +186,7 @@ class GptFunction
         end
       end
 
-      def create(requests)
+      def create(requests, metadata: nil)
         requests = requests.each_with_index.map do |request, index|
           {
             custom_id: "request-#{index + 1}",
@@ -206,11 +203,13 @@ class GptFunction
         uri = URI('https://api.openai.com/v1/batches')
         request = Net::HTTP::Post.new(uri, 'Content-Type' => 'application/json')
         request['Authorization'] = "Bearer #{GptFunction.api_key}"
-        request.body = {
+        body = {
           input_file_id: file.id,
           endpoint: '/v1/chat/completions',
           completion_window: '24h'
-        }.to_json
+        }
+        body[:metadata] = metadata unless metadata.nil?
+        request.body = body.to_json
 
         response = Net::HTTP.start(uri.hostname, uri.port, use_ssl: true) do |http|
           http.request(request)

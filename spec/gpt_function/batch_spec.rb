@@ -14,12 +14,12 @@ RSpec.describe GptFunction::Batch do
   it "create" do
     request1 = GptFunctions.翻譯成中文.to_request_body("apple")
     request2 = GptFunctions.翻譯成中文.to_request_body("tesla")
-    batch = GptFunction::Batch.create([request1, request2])
+    batch = GptFunction::Batch.create([request1, request2], metadata: { process_class: "process_class" })
     puts batch
   end
 
   it "from_id" do
-    batch = GptFunction::Batch.from_id("batch_eCRAXbbU68r0hkfrldPaXHIT")
+    batch = GptFunction::Batch.from_id("batch_ogf4nMeefPEg9atrfciCbzSE")
     puts batch
   end
 
