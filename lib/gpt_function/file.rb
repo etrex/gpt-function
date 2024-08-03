@@ -1,4 +1,3 @@
-# lib/gpt_function/batch.rb
 # frozen_string_literal: true
 
 require "net/http"

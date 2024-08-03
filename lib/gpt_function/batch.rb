@@ -1,4 +1,3 @@
-# lib/gpt_function/batch.rb
 # frozen_string_literal: true
 
 require "net/http"
@@ -98,19 +97,21 @@ class GptFunction
     end
 
     def input_file
+      return nil if input_file_id.nil?
       @input_file ||= File.from_id(input_file_id)
     end
 
     def output_file
+      return nil if output_file_id.nil?
       @output_file ||= File.from_id(output_file_id)
     end
 
     def input_jsonl
-      @input_jsonl ||= input_file.jsonl
+      @input_jsonl ||= input_file&.jsonl || []
     end
 
     def output_jsonl
-      @output_jsonl ||= output_file.jsonl
+      @output_jsonl ||= output_file&.jsonl || []
     end
 
     def inputs
@@ -135,19 +136,39 @@ class GptFunction
 
     def pairs
       hash = {}
-      inputs.each do |input|
-        hash[input["custom_id"]] = {
-          "input" => input["content"],
-        }
-      end
+
       outputs.each do |output|
-        hash[output["custom_id"]]["output"] = output["content"]
+        hash[output["custom_id"]] = [nil ,output["content"]]
       end
+
+      inputs.each do |input|
+        next if hash[input["custom_id"]].nil?
+        hash[input["custom_id"]][0] = input["content"]
+      end
+
       hash.values
     end
 
     def cancel
       Batch.cancel(id)
+    end
+
+    def enqueue
+      return false if GptFunction::Storage.batch_storage.nil?
+
+      GptFunction::Storage.batch_storage.enqueue(self.to_hash)
+    end
+
+    # validating	the input file is being validated before the batch can begin
+    # failed	the input file has failed the validation process
+    # in_progress	the input file was successfully validated and the batch is currently being run
+    # finalizing	the batch has completed and the results are being prepared
+    # completed	the batch has been completed and the results are ready
+    # expired	the batch was not able to be completed within the 24-hour time window
+    # cancelling	the batch is being cancelled (may take up to 10 minutes)
+    # cancelled	the batch was cancelled
+    def is_processed
+      ["failed", "completed", "expired", "cancelled"].include? status
     end
 
     class << self
@@ -199,7 +220,9 @@ class GptFunction
         raise "Batch creation failed: #{response.body}" unless response.is_a?(Net::HTTPSuccess)
 
         hash = JSON.parse(response.body)
-        Batch.new(hash)
+        batch = Batch.new(hash)
+        batch.enqueue
+        batch
       rescue => e
         file&.delete
         raise e
@@ -245,6 +268,32 @@ class GptFunction
         response.body
       end
 
+      def dequeue
+        hash = GptFunction::Storage.batch_storage&.dequeue
+        id = hash&.dig("id") || hash&.dig(:id)
+        from_id(id) if id
+      end
+
+      # 進行批次請求處理
+      # count: 處理批次請求的數量
+      # block: 處理批次請求的 block
+      # 返回值: 是否還有批次請求需要處理
+      def process(count: 1, &block)
+        # 從 Storage 取出 count 個批次請求
+        count.times do
+          batch = dequeue
+
+          # 如果沒有批次請求，則跳出迴圈
+          return false if batch.nil?
+
+          yield batch
+
+          # 如果 batch 還未處理完成，將批次請求重新加入 Storage
+          batch.enqueue unless batch.is_processed
+        end
+
+        true
+      end
     end
   end
 end

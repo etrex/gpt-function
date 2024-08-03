@@ -5,6 +5,8 @@ require "json"
 
 require_relative "gpt_function/version"
 require_relative "gpt_function/file"
+require_relative "gpt_function/storage"
+require_relative "gpt_function/simple_queue"
 require_relative "gpt_function/batch"
 require_relative "gpt_functions"
 
@@ -17,9 +19,10 @@ class GptFunction
   class << self
     attr_accessor :api_key, :model
 
-    def configure(api_key:, model:)
+    def configure(api_key:, model:, batch_storage: GptFunction::SimpleQueue.new)
       @api_key = api_key
       @model = model
+      GptFunction::Storage.batch_storage = batch_storage
     end
   end
 
