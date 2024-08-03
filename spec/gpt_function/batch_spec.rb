@@ -61,14 +61,12 @@ RSpec.describe GptFunction::Batch do
 
   it "dequeue" do
     batch = GptFunction::Batch.create([GptFunctions.翻譯成中文.to_request_body("apple")])
-    batch.enqueue
     dequeued_batch = GptFunction::Batch.dequeue
     expect(dequeued_batch.id).to eq(batch.id)
   end
 
   it "process" do
     batch = GptFunction::Batch.create([GptFunctions.翻譯成中文.to_request_body("apple")])
-    batch.enqueue
 
     # 每 1 秒執行一次
     processed = false

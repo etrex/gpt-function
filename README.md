@@ -27,25 +27,92 @@ gem 'gpt-function'
 require 'gpt-function'
 
 # 你需要設定你的 api key 和 model name
-Gpt::Function.configure(api_key: '...', model: 'gpt-3.5-turbo-1106')
+GptFunction.configure(api_key: '...', model: 'gpt-4o-mini', batch_storage: MyBatchStorage)
 
 # 使用內建的翻譯方法
-p Gpt::Functions.翻譯成中文("banana") # "香蕉"
+p GptFunctions.翻譯成中文.call("banana") # "香蕉"
 
 # 使用內建的擷取關鍵字方法
-p Gpt::Functions.擷取關鍵字("臺北市政府推動綠色交通計劃，鼓勵民眾使用公共運輸和自行車")  # ["臺北市政府", "綠色交通計劃", "民眾", "公共運輸", "自行車"]
+p GptFunctions.擷取關鍵字.call("臺北市政府推動綠色交通計劃，鼓勵民眾使用公共運輸和自行車")  # ["臺北市政府", "綠色交通計劃", "民眾", "公共運輸", "自行車"]
 
 # 你也可以自己定義方法
-def 擷取關鍵字(input)
+def 擷取關鍵字
   # 創建一個簡單的 GPT 函數，你需要描述這個函數的功能，以及提供一些範例
-  Gpt::Function.new("Extract all keywords",
+  GptFunction.new("Extract all keywords",
   [
     [
       "臺灣最新5G網路覆蓋率達95%，推動智慧城市發展，領先亞洲多國",
       ["臺灣", "5G網路", "覆蓋率", "智慧城市", "亞洲"]
     ]
-  ]).call(input)
+  ])
 end
+```
+
+Batch Storage 是一個用來儲存 GPT 函數的結果的類別，你可以自己定義一個類似的類別，並且在 `GptFunction.configure` 中設定。
+
+```ruby
+class MyBatchStorage
+  def initialize
+    @queue = []
+  end
+
+  def enqueue(value)
+    @queue << value
+    true
+  end
+
+  def dequeue
+    @queue.shift
+  end
+end
+
+GptFunction.configure(api_key: '...', model: 'gpt-4o-mini', batch_storage: MyBatchStorage)
+```
+
+你可以用 Batch.create 建立一個新的 Batch, 在 create 成功時，會自動將 Batch 存入 BatchStorage 中。
+
+```ruby
+request1 = GptFunctions.翻譯成中文.to_request_body("apple")
+request2 = GptFunctions.翻譯成中文.to_request_body("tesla")
+batch = GptFunction::Batch.create([request1, request2])
+```
+
+你可以用 Batch.process 來處理 Batch，如果 Batch 的 status 在 "failed", "completed", "expired", "cancelled" 當中，Batch 會被從 queue 中移除，如果是其他狀態，Batch 會自動重新加入 queue 中，你只需要定期持續呼叫 process 就可以。
+
+```ruby
+GptFunction::Batch.process do |batch|
+  puts "batch id: #{batch.id}, status: #{batch.status}, progress: #{batch.request_counts_completed}/#{batch.request_counts_total}"
+  batch.pairs.each do |input, output|
+    puts "input: #{input}, output: #{output}"
+  end
+end
+```
+
+可以用 count 參數來限制每次處理的數量，預設值為 1。
+
+```ruby
+GptFunction::Batch.process(count: 2) do |batch|
+  ...
+end
+```
+
+Batch Storage 整合 Active Record 的範例：
+
+```ruby
+class Model < ApplicationRecord
+  class << self
+    def enqueue(hash)
+      create!(hash)
+      true
+    end
+
+    def dequeue
+      first&.destroy
+    end
+  end
+end
+
+GptFunction.configure(api_key: '...', model: 'gpt-4o-mini', batch_storage: Model)
 ```
 
 ## License
