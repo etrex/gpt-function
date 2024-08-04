@@ -173,7 +173,7 @@ class GptFunction
     end
 
     def auto_delete
-      metadata&.dig("auto_delete") || false
+      metadata&.dig("auto_delete") == "true"
     end
 
     class << self

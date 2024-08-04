@@ -48,6 +48,13 @@ RSpec.describe GptFunction::File do
     expect(response["deleted"]).to eq(true)
   end
 
+  it "delete files" do
+    files = GptFunction::File.list
+    files.each do |file|
+      p file.filename.start_with?("batch")
+    end
+  end
+
   # context "create & delete" do
   #   before do
       # 模擬 HTTP 請求和響應
