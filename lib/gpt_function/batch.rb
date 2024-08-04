@@ -296,7 +296,7 @@ class GptFunction
           yield batch
 
           # 如果 batch 還未處理完成，將批次請求重新加入 Storage
-          if batch.is_processed && auto_delete
+          if batch.is_processed && batch.auto_delete
             batch&.input_file&.delete rescue nil
             batch&.output_file&.delete rescue nil
             batch&.error_file&.delete rescue nil
