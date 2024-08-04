@@ -102,6 +102,11 @@ class GptFunction
       @output_file ||= File.from_id(output_file_id)
     end
 
+    def error_file
+      return nil if error_file_id.nil?
+      @error_file ||= File.from_id(error_file_id)
+    end
+
     def input_jsonl
       @input_jsonl ||= input_file&.jsonl || []
     end
@@ -165,6 +170,10 @@ class GptFunction
     # cancelled	the batch was cancelled
     def is_processed
       ["failed", "completed", "expired", "cancelled"].include? status
+    end
+
+    def auto_delete
+      metadata&.dig("auto_delete") || false
     end
 
     class << self
@@ -287,7 +296,13 @@ class GptFunction
           yield batch
 
           # 如果 batch 還未處理完成，將批次請求重新加入 Storage
-          batch.enqueue unless batch.is_processed
+          if batch.is_processed && auto_delete
+            batch&.input_file&.delete rescue nil
+            batch&.output_file&.delete rescue nil
+            batch&.error_file&.delete rescue nil
+          else
+            batch.enqueue
+          end
         end
 
         true
