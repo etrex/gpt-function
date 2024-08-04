@@ -4,11 +4,6 @@
 
 你可以確保每次呼叫 GPT 函數時，接近 100% 都會得到相同的結果。
 
-目前能夠使用的模型有：
-
-- gpt-4-1106-preview
-- gpt-3.5-turbo-1106
-
 
 ## Installation
 
@@ -99,20 +94,31 @@ end
 Batch Storage 整合 Active Record 的範例：
 
 ```ruby
-class Model < ApplicationRecord
+class BatchStatus < ApplicationRecord
   class << self
     def enqueue(hash)
-      create!(hash)
+      model = BatchStatus.new
+      model.batch_id = hash[:id]
+      model.status = hash[:status]
+      model.request_counts_completed = hash[:request_counts_completed]
+      model.request_counts_failed = hash[:request_counts_failed]
+      model.request_counts_total = hash[:request_counts_total]
+      model.metadata = hash[:metadata]
+      model.payload = hash
+      model.save
       true
     end
 
     def dequeue
-      first&.destroy
+      model = first
+      model.destroy
+      model.payload
     end
   end
 end
 
-GptFunction.configure(api_key: '...', model: 'gpt-4o-mini', batch_storage: Model)
+
+GptFunction.configure(api_key: '...', model: 'gpt-4o-mini', batch_storage: BatchStatus)
 ```
 
 ## License
