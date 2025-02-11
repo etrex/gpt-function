@@ -53,8 +53,10 @@ class GptFunction
     response = send_request(input)
     body = response.body.force_encoding("UTF-8")
     json = JSON.parse(body)
+    
     # 處理可能的錯誤回應
-    raise StandardError, json.dig("error", "message") if json.dig("error", "code")
+    error_message = json.dig("error", "message")
+    raise StandardError, error_message unless error_message.nil?
 
     # 處理正常的回應
     JSON.parse(json.dig("choices", 0, "message", "content"))["output"]
